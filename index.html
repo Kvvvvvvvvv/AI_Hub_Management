@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AI Hub Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #00d1ff;
+            --primary-dark: #0099cc;
+            --secondary: #4CAF50;
+            --danger: #ff3b3b;
+            --warning: #ff9800;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #23234a;
+            --text-primary: #ffffff;
+            --text-secondary: #b8b9c7;
+            --text-muted: #8a8b99;
+            --border: #333355;
+            --shadow-sm: 0 2px 8px rgba(0, 209, 255, 0.1);
+            --shadow-md: 0 8px 32px rgba(0, 209, 255, 0.2);
+            --shadow-lg: 0 16px 64px rgba(0, 209, 255, 0.3);
+            --shadow-glow: 0 0 40px rgba(0, 209, 255, 0.4);
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 209, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--primary) 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease-in-out infinite;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 40px rgba(0, 209, 255, 0.3);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 1;
+            max-width: 600px;
+            min-width: 250px; /* Prevent shrinking too much */
+        }
+
+        #search {
+            width: 100%;
+            padding: 1rem 1.5rem 1rem 3rem;
+            background: rgba(35, 35, 74, 0.7);
+            backdrop-filter: blur(20px);
+            border: 2px solid transparent;
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        #search::placeholder {
+            color: var(--text-muted);
+        }
+
+        #search:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+            background: rgba(35, 35, 74, 0.9);
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        #categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            justify-content: center; /* Center align category buttons */
+        }
+
+        #categories button {
+            padding: 0.75rem 1.5rem;
+            background: rgba(35, 35, 74, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--text-secondary);
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #categories button:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        #categories button.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        #addBtn, #exportBtn {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+
+        #exportBtn {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--primary-dark) 100%);
+        }
+
+        #addBtn:hover, #exportBtn:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        #toolList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Increased min width */
+            gap: 1.5rem;
+            padding: 1rem 0;
+            justify-items: center; /* Center align grid items */
+        }
+
+        .tool {
+            background: rgba(35, 35, 74, 0.7);
+            backdrop-filter: blur(24px);
+            padding: 1.5rem;
+            border-radius: var(--border-radius-lg);
+            border: 2px solid rgba(51, 51, 85, 0.5);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px; /* Prevent cards from getting too wide */
+        }
+
+        .tool.trending {
+            border: 2px solid var(--primary);
+            box-shadow: var(--shadow-glow);
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: var(--shadow-glow); }
+            50% { box-shadow: 0 0 60px rgba(0, 209, 255, 0.6); }
+        }
+
+        .tool.favorited {
+            border: 2px solid var(--warning);
+            box-shadow: 0 0 40px rgba(255, 152, 0, 0.2);
+        }
+
+        .tool:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align to top instead of center */
+            margin-bottom: 1rem;
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .tool-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .tool-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .star-btn {
+            color: var(--text-muted);
+        }
+
+        .star-btn.favorited {
+            color: var(--warning);
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .remove-btn {
+            color: var(--danger);
+            background: rgba(255, 59, 59, 0.1);
+        }
+
+        .tool-icon-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .tool-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--border-radius);
+            background: rgba(26, 26, 40, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            border: 2px solid rgba(0, 209, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .tool-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .tool-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center; /* Center align tool name */
+        }
+
+        .tool-url {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center; /* Center align URL */
+        }
+
+        .tool-category {
+            display: inline-block;
+            padding: 0.3em 0.8em;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            background: var(--bg-secondary);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            align-self: flex-start; /* Align to start of flex container */
+        }
+
+        .tool-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .tool-footer {
+            margin-top: auto;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center; /* Center align footer buttons */
+        }
+
+        .visit-btn {
+            flex-grow: 1;
+            max-width: 200px; /* Prevent button from getting too wide */
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .visit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            width: min(90vw, 500px);
+            box-shadow: var(--shadow-lg);
+            border: 2px solid var(--border);
+            position: relative;
+        }
+
+        .modal-title {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center; /* Center align modal title */
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .modal input, .modal select, .modal textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .modal input:focus, .modal select:focus, .modal textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center; /* Center align modal buttons */
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+        }
+
+        .modal-btn.secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border);
+        }
+
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(35, 35, 74, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* No results styling */
+        .no-results {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .no-results h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-container {
+                max-width: none;
+                order: 1;
+            }
+
+            .header-actions {
+                order: 2;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            #toolList {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stat-item {
+                padding: 0.5rem 0;
+            }
+
+            #categories {
+                justify-content: center;
+            }
+
+            #categories button {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tool {
+                padding: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            #addBtn, #exportBtn {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .header-actions {
+                gap: 0.5rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .tool {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .tool:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+
+        .tool:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Hub Dashboard</h1>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="totalTools">0</div>
+                <div class="stat-label">Total Tools</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="favoriteTools">0</div>
+                <div class="stat-label">Favorites</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="trendingTools">0</div>
+                <div class="stat-label">Trending</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="categoriesCount">0</div>
+                <div class="stat-label">Categories</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-header">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search" placeholder="Search AI tools by name, category or URL..." />
+            </div>
+            
+            <div class="header-actions">
+                <button id="exportBtn">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+                <button id="addBtn">
+                    <i class="fas fa-plus"></i> Add Tool
+                </button>
+            </div>
+        </div>
+        
+        <div id="categories">
+            <button onclick="filterCategory('All')" class="active">All</button>
+            <button onclick="filterCategory('Favorites')">⭐ Favorites</button>
+            <button onclick="filterCategory('Trending')">🔥 Trending</button>
+            <button onclick="filterCategory('Productivity')">⚡ Productivity</button>
+            <button onclick="filterCategory('Development')">👨‍💻 Development</button>
+            <button onclick="filterCategory('Design')">🎨 Design</button>
+            <button onclick="filterCategory('Writing')">✍️ Writing</button>
+            <button onclick="filterCategory('Research')">🔬 Research</button>
+        </div>
+        
+        <div id="toolList"></div>
+    </div>
+
+    <!-- Add/Edit Tool Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h2 class="modal-title" id="modalTitle">Add New AI Tool</h2>
+            
+            <div class="form-group">
+                <label for="toolName">Tool Name</label>
+                <input type="text" id="toolName" placeholder="Enter tool name" />
+            </div>
+            
+            <div class="form-group">
+                <label for="toolURL">Tool URL</label>
+                <input type="text" id="toolURL" placeholder="https://example.com" />
+            </div>
+            
+            <div class="form-group">
+                <label for="toolDescription">Description (Optional)</label>
+                <textarea id="toolDescription" placeholder="Brief description of the tool"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="toolCategory">Category</label>
+                <select id="toolCategory">
+                    <option value="Productivity">⚡ Productivity</option>
+                    <option value="Development">👨‍💻 Development</option>
+                    <option value="Design">🎨 Design</option>
+                    <option value="Writing">✍️ Writing</option>
+                    <option value="Research">🔬 Research</option>
+                    <option value="Trending">🔥 Trending</option>
+                    <option value="Other">❓ Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="toolTrending" />
+                    Mark as Trending
+                </label>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn secondary close-modal">Cancel</button>
+                <button class="modal-btn primary" id="saveTool">Save Tool</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Enhanced AI Hub Dashboard
+        let tools = [];
+        let favorites = [];
+        let currentFilter = 'All';
+        let editIndex = -1;
+
+        // DOM Elements
+        const toolList = document.getElementById('toolList');
+        const search = document.getElementById('search');
+        const modal = document.getElementById('modal');
+        const addBtn = document.getElementById('addBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        const saveTool = document.getElementById('saveTool');
+
+        // Stats elements
+        const totalToolsEl = document.getElementById('totalTools');
+        const favoriteToolsEl = document.getElementById('favoriteTools');
+        const trendingToolsEl = document.getElementById('trendingTools');
+        const categoriesCountEl = document.getElementById('categoriesCount');
+
+        // Load from localStorage or initialize
+        try {
+            tools = JSON.parse(localStorage.getItem('aiTools')) || [];
+        } catch { tools = []; }
+        try {
+            favorites = JSON.parse(localStorage.getItem('aiFavorites')) || [];
+        } catch { favorites = []; }
+        if (!Array.isArray(tools)) tools = [];
+        if (!Array.isArray(favorites)) favorites = [];
+
+        // Update stats
+        function updateStats() {
+            totalToolsEl.textContent = tools.length;
+            favoriteToolsEl.textContent = favorites.length;
+            
+            const trendingCount = tools.filter(tool => tool.trending).length;
+            trendingToolsEl.textContent = trendingCount;
+            
+            const categories = new Set(tools.map(tool => tool.category));
+            categoriesCountEl.textContent = categories.size;
+        }
+
+        // Get favicon URL
+        function getFavicon(url) {
+            try {
+                const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+                return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=128`;
+            } catch {
+                return 'https://www.google.com/s2/favicons?domain=example.com&sz=128';
+            }
+        }
+
+        // Render tools based on current filter and search
+        function renderTools() {
+            toolList.innerHTML = "";
+            
+            let filtered = tools.filter(tool => {
+                if (currentFilter === 'All') return true;
+                if (currentFilter === 'Favorites') return favorites.includes(tool.url);
+                return tool.category === currentFilter;
+            }).filter(tool => {
+                const searchTerm = search.value.toLowerCase();
+                return (
+                    tool.name.toLowerCase().includes(searchTerm) ||
+                    tool.url.toLowerCase().includes(searchTerm) ||
+                    (tool.description && tool.description.toLowerCase().includes(searchTerm)) ||
+                    tool.category.toLowerCase().includes(searchTerm)
+                );
+            });
+            
+            if (filtered.length === 0) {
+                toolList.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-robot"></i>
+                        <h3>No tools found</h3>
+                        <p>Try adjusting your search or add a new tool</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            filtered.forEach((tool, index) => {
+                const isFavorited = favorites.includes(tool.url);
+                const div = document.createElement('div');
+                div.className = 'tool' + 
+                    (tool.trending ? ' trending' : '') + 
+                    (isFavorited ? ' favorited' : '');
+                
+                div.innerHTML = `
+                    <div class="tool-header">
+                        <div class="tool-category">${tool.category}</div>
+                        <div class="tool-actions">
+                            <button class="tool-btn star-btn ${isFavorited ? 'favorited' : ''}" 
+                                    onclick="toggleFavorite('${tool.url}')" 
+                                    title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <button class="tool-btn remove-btn" onclick="removeTool(${index})" title="Remove tool">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tool-icon-container">
+                        <div class="tool-icon">
+                            <img src="${getFavicon(tool.url)}" alt="${tool.name} icon" onerror="this.src='https://www.google.com/s2/favicons?domain=example.com&sz=128';" />
+                        </div>
+                    </div>
+                    <h3 class="tool-name" title="${tool.name}">${tool.name}</h3>
+                    <div class="tool-url" title="${tool.url}">${tool.url}</div>
+                    ${tool.description ? `<p class="tool-description">${tool.description}</p>` : ''}
+                    <div class="tool-footer">
+                        <button class="visit-btn" onclick="window.open('${tool.url}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i> Visit
+                        </button>
+                    </div>
+                `;
+                
+                toolList.appendChild(div);
+            });
+        }
+
+        // Filter tools by category
+        window.filterCategory = function(category) {
+            currentFilter = category;
+            const buttons = document.querySelectorAll('#categories button');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.trim() === category || btn.textContent.includes(category)) {
+                    btn.classList.add('active');
+                }
+            });
+            renderTools();
+        }
+
+        // Toggle favorite status of a tool
+        window.toggleFavorite = function(url) {
+            const index = favorites.indexOf(url);
+            if (index === -1) {
+                favorites.push(url);
+            } else {
+                favorites.splice(index, 1);
+            }
+            localStorage.setItem('aiFavorites', JSON.stringify(favorites));
+            updateStats();
+            renderTools();
+        }
+
+        // Remove a tool from the list
+        window.removeTool = function(index) {
+            if (!confirm('Are you sure you want to remove this tool?')) return;
+            
+            // Remove from favorites if it exists there
+            const toolUrl = tools[index].url;
+            const favIndex = favorites.indexOf(toolUrl);
+            if (favIndex !== -1) {
+                favorites.splice(favIndex, 1);
+                localStorage.setItem('aiFavorites', JSON.stringify(favorites));
+            }
+            
+            tools.splice(index, 1);
+            localStorage.setItem('aiTools', JSON.stringify(tools));
+            updateStats();
+            renderTools();
+        }
+
+        // Open modal to add/edit tool
+        window.openModal = function(isEdit = false, index = -1) {
+            editIndex = index;
+            const title = document.getElementById('modalTitle');
+            const saveButton = document.getElementById('saveTool');
+            if (isEdit) {
+                const tool = tools[index];
+                title.textContent = "Edit AI Tool";
+                saveButton.textContent = "Update Tool";
+                document.getElementById('toolName').value = tool.name;
+                document.getElementById('toolURL').value = tool.url;
+                document.getElementById('toolDescription').value = tool.description || '';
+                document.getElementById('toolCategory').value = tool.category;
+                document.getElementById('toolTrending').checked = tool.trending;
+            } else {
+                title.textContent = "Add New AI Tool";
+                saveButton.textContent = "Save Tool";
+                document.getElementById('toolName').value = '';
+                document.getElementById('toolURL').value = '';
+                document.getElementById('toolDescription').value = '';
+                document.getElementById('toolCategory').value = 'Productivity';
+                document.getElementById('toolTrending').checked = false;
+            }
+            modal.style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Save tool (add or update)
+        saveTool.onclick = function() {
+            const name = document.getElementById('toolName').value.trim();
+            const url = document.getElementById('toolURL').value.trim();
+            const description = document.getElementById('toolDescription').value.trim();
+            const category = document.getElementById('toolCategory').value;
+            const trending = document.getElementById('toolTrending').checked;
+            
+            if (!name || !url) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+            
+            // Validate URL format
+            try {
+                new URL(url.startsWith('http') ? url : `https://${url}`);
+            } catch {
+                alert("Please enter a valid URL (e.g., 'example.com' or 'https://example.com')");
+                return;
+            }
+            
+            const toolData = {
+                name,
+                url,
+                description: description || null,
+                category,
+                trending
+            };
+            
+            if (editIndex === -1) {
+                tools.push(toolData);
+            } else {
+                tools[editIndex] = toolData;
+            }
+            
+            localStorage.setItem('aiTools', JSON.stringify(tools));
+            closeModal();
+            updateStats();
+            renderTools();
+        }
+
+        // Export tools to JSON file
+        exportBtn.onclick = function() {
+            const dataStr = JSON.stringify(tools, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const exportFileDefaultName = `ai-tools-${new Date().toISOString().split('T')[0]}.json`;
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            document.body.appendChild(linkElement);
+            linkElement.click();
+            document.body.removeChild(linkElement);
+        }
+
+        // Event listeners
+        addBtn.onclick = () => openModal(false);
+        closeModalButtons.forEach(btn => btn.onclick = closeModal);
+        search.addEventListener('input', renderTools);
+
+        // Initial render
+        updateStats();
+        renderTools();
+    </script>
+</body>
+</html>
